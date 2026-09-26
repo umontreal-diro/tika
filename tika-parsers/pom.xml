@@ -32,14 +32,7 @@
 
   <packaging>pom</packaging>
   <modules>
-    <!-- shared JDK HTTP client for parser modules (zero runtime deps) -->
-    <module>tika-http-jdk</module>
-    <!-- basic parsers - avoid network dependent parsers, native code -->
     <module>tika-parsers-standard</module>
-    <!-- allow network dependent parsers and native code  -->
-    <module>tika-parsers-extended</module>
-    <!-- potentially massive dependencies (e.g. dl4j)    -->
-    <module>tika-parsers-ml</module>
   </modules>
 
   <dependencies>

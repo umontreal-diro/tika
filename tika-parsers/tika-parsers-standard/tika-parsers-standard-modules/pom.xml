@@ -60,31 +60,10 @@
     </dependency>
   </dependencies>
   <modules>
-    <module>tika-parser-jdbc-commons</module>
-    <module>tika-parser-datauri-commons</module>
-    <module>tika-parser-digest-commons</module>
-    <module>tika-parser-mail-commons</module>
     <module>tika-parser-xmp-commons</module>
-    <module>tika-parser-zip-commons</module>
-
-    <module>tika-parser-ocr-module</module>
-    <module>tika-parser-audiovideo-module</module>
-    <module>tika-parser-code-module</module>
-    <module>tika-parser-html-module</module>
     <module>tika-parser-image-module</module>
-    <module>tika-parser-text-module</module>
-    <module>tika-parser-font-module</module>
-    <module>tika-parser-microsoft-module</module>
-    <module>tika-parser-pkg-module</module>
-    <module>tika-parser-xml-module</module>
+    <module>tika-parser-ocr-module</module>
     <module>tika-parser-pdf-module</module>
-    <module>tika-parser-apple-module</module>
-    <module>tika-parser-cad-module</module>
-    <module>tika-parser-mail-module</module>
-    <module>tika-parser-miscoffice-module</module>
-    <module>tika-parser-news-module</module>
-    <module>tika-parser-crypto-module</module>
-    <module>tika-parser-webarchive-module</module>
   </modules>
   <build>
     <plugins>

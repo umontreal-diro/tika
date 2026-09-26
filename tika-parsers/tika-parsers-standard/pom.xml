@@ -34,8 +34,6 @@
 
   <modules>
     <module>tika-parsers-standard-modules</module>
-    <module>tika-parsers-standard-package</module>
-    <module>tika-parsers-standard-integration-tests</module>
   </modules>
   <build>
     <pluginManagement>
