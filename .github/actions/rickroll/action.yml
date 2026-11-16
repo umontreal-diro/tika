@@ -1,0 +1,9 @@
+name: Rickroll
+description: Affiche un rickroll dans le résumé GitHub Actions
+runs:
+  using: composite
+  steps:
+    - name: Afficher le rickroll
+      shell: bash
+      run: |
+        printf '%s\n' ' [Never Gonna Give You Up](https://www.youtube.com/watch?v=dQw4w9WgXcQ)' >> "$GITHUB_STEP_SUMMARY"
