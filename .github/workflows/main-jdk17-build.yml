@@ -28,7 +28,34 @@ on:
       - 'docs/**'
 
 jobs:
+  semgrep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Same ruleset locally and in CI, otherwise before/after reports cannot be compared.
+      SEMGREP_CONFIG: p/java
+      # PR: compare with the target branch. Push: compare with the previous commit of the branch.
+      BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0   # Semgrep needs the full history to scan the baseline commit
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Semgrep
+        run: pip install semgrep
+      - name: Semgrep, fail only on NEW findings
+        run: |
+          if [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            BASE_SHA=$(git rev-parse HEAD~1)
+          fi
+          echo "Baseline commit: $BASE_SHA"
+          semgrep scan --config "$SEMGREP_CONFIG" --config semgrep-validation.yml --metrics=off --error --baseline-commit "$BASE_SHA" 
+    
   build:
+    needs: semgrep
     runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:

@@ -1,0 +1,48 @@
+rules:
+  - id: validation-semgrep-ci
+    languages: [java]
+    severity: ERROR
+    message: "Alerte volontaire pour valider le blocage Maven"
+    pattern-regex: "SEMGREP_CI_VALIDATION"
+
+  - id: simulation-injection-sql
+    languages: [java]
+    severity: ERROR
+    message: "Cas simulé pour le rapport — injection SQL"
+    pattern-regex: "SIMULATED_SQL_INJECTION"
+
+  - id: simulation-traversee-repertoires
+    languages: [java]
+    severity: ERROR
+    message: "Cas simulé pour le rapport — traversée de répertoires"
+    pattern-regex: '"SIMULATED_PATH_TRAVERSAL"'
+
+  - id: simulation-injection-commandes
+    languages: [java]
+    severity: ERROR
+    message: "Cas simulé pour le rapport — injection de commandes"
+    pattern-regex: '"SIMULATED_COMMAND_INJECTION"'
+
+  - id: simulation-deserialisation-non-securisee
+    languages: [java]
+    severity: ERROR
+    message: "Cas simulé pour le rapport — désérialisation non sécurisée"
+    pattern-regex: '"SIMULATED_UNSAFE_DESERIALIZATION"'
+
+  - id: simulation-xxe
+    languages: [java]
+    severity: ERROR
+    message: "Cas simulé pour le rapport — entités externes XML"
+    pattern-regex: '"SIMULATED_XML_EXTERNAL_ENTITY"'
+
+  - id: simulation-secret-code-en-dur
+    languages: [java]
+    severity: ERROR
+    message: "Cas simulé pour le rapport — secret codé en dur"
+    pattern-regex: '"SIMULATED_HARDCODED_SECRET"'
+
+  - id: simulation-verification-tls-desactivee
+    languages: [java]
+    severity: ERROR
+    message: "Cas simulé pour le rapport — vérification TLS désactivée"
+    pattern-regex: '"SIMULATED_TLS_VERIFICATION_DISABLED"'
