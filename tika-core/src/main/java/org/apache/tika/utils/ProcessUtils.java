@@ -15,18 +15,35 @@
  * limitations under the License.
  */
 package org.apache.tika.utils;
-
-
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.GeneralSecurityException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLSession;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
 public class ProcessUtils {
 
@@ -292,5 +309,149 @@ public class ProcessUtils {
             }
         }
     }
+
+
+
+
+    // tester si semgrep detecte les failles 
+
+
+
+    
+    /**
+     * 1- WEak cryppto test
+     * Hashes a text with MD5
+     * @param text the text to hash 
+     * @return the MD5 hash (16octets)
+     * @throws NoSuchAlgorithmException if MD5 isn't available
+     */
+    public static byte[] hashText(String text) throws NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        return md.digest(text.getBytes(StandardCharsets.UTF_8));
+    } 
+    
+
+
+    
+    // aes -> ECB electronic codebook mode (est le default )
+    // collisions de results 
+
+
+    /**
+     * Encrypts the text with AES in ECB format 
+     * @param text text to encrypt with AES 
+     * @param key 26 octets 
+     * @return the  encrypted text 
+     * @throws GeneralSecurityException exception due to failure of encryption
+     */
+    public static byte[] encryptAES( String text, byte[] key) throws GeneralSecurityException {
+        Cipher chiffrem = Cipher.getInstance("AES/ECB/PKCS5Padding");
+        chiffrem.init(Cipher.ENCRYPT_MODE,new SecretKeySpec(key, "AES") );
+        return chiffrem.doFinal(text.getBytes(StandardCharsets.UTF_8));
+
+    }
+
+
+
+    // injection sql 
+
+    /**
+     * Test method that finds the document by name in the DB 
+     * @param conn DB connection 
+     * @param name name of the document 
+     * @return matching rows found in DB 
+     * @throws SQLException exception triggered by failure of the SQL query
+     */
+    public static ResultSet findDocument(Connection conn , String name )throws SQLException {
+        String query = "SELECT * FROM documents WHERE name = '" + name + "'";
+        Statement stmt = conn.createStatement();
+        return stmt.executeQuery(query);
+    } 
+
+
+    // xxe -> entites XML externes qui ne sont pas déssactivees
+
+    /**
+     * In order to parse an XML snippet in a DOM
+     *
+     * @return parsed document
+     * @throws Exception when parsing fails
+     */
+
+    // pas detecte 
+    // public static org.w3c.dom.Document parseXMLExample(java.io.InputStream input)
+    //         throws Exception {
+    //     javax.xml.parsers.DocumentBuilderFactory dbfact = 
+    //             javax.xml.parsers.DocumentBuilderFactory.newInstance();
+    //     javax.xml.parsers.DocumentBuilder builder = dbfact.newDocumentBuilder();
+    //     return builder.parse(input);
+    // }    
+
+    /**
+     * Loading an object by desializing it from a stream 
+     * @param input the stream containing the serialized object 
+     * @return the desialized object 
+     * @throws IOException failure of the reading of the input 
+     * @throws ClassNotFoundException 
+     *
+     */
+    public static Object deserializeObject(InputStream input) throws IOException , ClassNotFoundException {
+        ObjectInputStream obj = new ObjectInputStream(input);
+        return obj.readObject(); 
+        // ex : octets -> objet 
+
+    }
+
+
+    // injection de commande 
+
+
+    /**
+     * Verifying that a remote server is reachable by ping 
+     * @param host  name of the server 
+     * @return result of the ping process
+     * @throws IOException
+     */
+    public static FileProcessResult ping(String host) throws IOException {
+    // pas detecte 
+
+        String cmd = " ping -c 1 " + host;
+        ProcessBuilder builder = new ProcessBuilder("sh", "-c", cmd); 
+        return execute(builder, 10000, 10000, 10000);
+    }
+
+    // security conn !! -> protocole https
+
+    public static HostnameVerifier acceotHosts() {
+        return new HostnameVerifier() {
+            @Override 
+            public boolean verify(String hostname , SSLSession session) {
+                return true;
+            }
+        };
+    }
+
+    /**
+     * Openon a conn to a remote service
+     * @param port server port
+     * @param host server name 
+     * @return
+     * @throws IOException
+     */
+    public static Socket connect(int port, String host) throws IOException { 
+
+
+        return new Socket(host , port ) ;
+    }
+
+
+
+    public static SAXParser createSaxParser() throws ParserConfigurationException, SAXException {
+        SAXParserFactory factory = SAXParserFactory.newInstance();
+        return factory.newSAXParser();
+    }
+
+
+
 
 }

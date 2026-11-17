@@ -23,12 +23,43 @@ on:
     paths-ignore:
       - 'docs/**'
   push:
-    branches: [ main ]
+    branches: [ main , tache3 ]
     paths-ignore:
       - 'docs/**'
 
 jobs:
+  semgrep:
+    name: Semgrep, nouvelles vulnérabilités
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0                # l'historique
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Installer Semgrep
+        run: pip install semgrep
+      - name: Semgrep - échoue si une nouvelle vulnérabilité est introduite
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          # premier push d'une nouvelle branche : pas de "before", on prend le commit parent
+          if [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            BASE_SHA=$(git rev-parse HEAD~1)
+          fi
+          echo "Commit de référence : $BASE_SHA"
+          semgrep scan --config p/java --config p/security-audit --baseline-commit "$BASE_SHA"
+      - name: Semgrep - comparer le code avant et apres l'introduction de vulnerabilites
+        if: always()
+        run: |
+          semgrep scan --config p/java --config p/security-audit --baseline-commit bc3d0aed83c45b17cfa9b254737b4ae059c916c0
+      
+
   build:
+  # s'assurer que semgrep success en 1er
+    needs: semgrep 
     runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:
@@ -46,7 +77,11 @@ jobs:
       - name: Install external tools
         run: sudo apt-get update && sudo apt-get install -y ffmpeg libimage-exiftool-perl
       - name: Build with Maven
+        id: maven
         run: mvn clean apache-rat:check test install javadoc:aggregate -Pci -B "-Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"
+      - name: Rickroll si un test echoue
+        if: failure() && steps.maven.outcome == 'failure'
+        uses: ./.github/actions/rickroll
 
   e2e-tests:
     runs-on: ubuntu-latest
@@ -65,4 +100,8 @@ jobs:
           java-version: ${{ matrix.java }}
           cache: 'maven'
       - name: Run E2E Tests
+        id: e2e
         run: mvn -pl tika-e2e-tests -am clean verify -Pe2e -B "-Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"
+      - name: Rickroll si un test echoue
+        if: failure() && steps.e2e.outcome == 'failure'
+        uses: ./.github/actions/rickroll
